@@ -17,7 +17,7 @@ This is a simple side-scrolling game implemented in JavaScript using the p5.js l
 
 1. Clone the repository:
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/ianthehamster/UoL_Midterm_Assignment.git
    ```
 2. Open the `index.html` file in your browser.
 
