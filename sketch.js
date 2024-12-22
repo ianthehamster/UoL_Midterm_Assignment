@@ -20,6 +20,12 @@ var ignoreSpacebar;
 var collectable;
 var canyon;
 
+var trees_x;
+var treePos_y;
+
+var scrollPos;
+var gameChar_world_x;
+
 function apple(x_pos, y_pos, size) {
   // Main apple body
   fill(255, 0, 0);
@@ -64,6 +70,12 @@ function setup() {
   };
 
   ignoreSpacebar = false;
+
+  trees_x = [300, 500, 900, 1200, 1450];
+  treePos_y = floorPos_y;
+
+  scrollPos = 0;
+  gameChar_world_x = gameChar_x;
 }
 
 function draw() {
@@ -76,23 +88,46 @@ function draw() {
   fill(0, 155, 0);
   rect(0, floorPos_y, width, height - floorPos_y); //draw some green ground
 
-  //draw the canyon
-  console.log(gameChar_x, gameChar_y, collectable.x_pos, collectable.y_pos);
+  for (let i = 0; i < trees_x.length; i++) {
+    let treeScreenX = trees_x[i] + scrollPos; // Adjust position relative to scroll
+    fill(100, 50, 0);
+    rect(treeScreenX - 25, -150 + treePos_y, 50, 150);
+    fill(0, 100, 0);
+    triangle(
+      treeScreenX - 75,
+      treePos_y - 150,
+      treeScreenX,
+      treePos_y - 300,
+      treeScreenX + 75,
+      treePos_y - 150,
+    );
+    triangle(
+      treeScreenX - 100,
+      treePos_y - 75,
+      treeScreenX,
+      treePos_y - 225,
+      treeScreenX + 100,
+      treePos_y - 75,
+    );
+  }
 
   // draw collectable
+  let collectableScreenX = collectable.x_pos + scrollPos;
   if (dist(gameChar_x, gameChar_y, collectable.x_pos, collectable.y_pos) < 20) {
     collectable.isFound = true;
   }
   if (!collectable.isFound) {
     // apple(collectable.x_pos - 36, collectable.y_pos, collectable.size);
-    apple(collectable.x_pos, collectable.y_pos, collectable.size);
+    apple(collectableScreenX, collectable.y_pos, collectable.size);
 
     // apple(collectable.x_pos + 100, collectable.y_pos, collectable.size);
     // apple(canyon.x_pos - 310, collectable.y_pos, collectable.size);
   }
 
-  fill(150, 75, 0);
-  rect(canyon.x_pos + 100, 432, canyon.width, 144);
+  // Draw the canyon
+  let canyonScreenX = canyon.x_pos + scrollPos;
+  fill(100, 50, 0);
+  rect(canyonScreenX, 432, canyon.width, 144);
 
   //the game character
   if (isLeft && isJumping) {
@@ -237,17 +272,13 @@ function draw() {
     line(gameChar_x + 13, gameChar_y - 35, gameChar_x + 30, gameChar_y - 30);
   }
 
-  console.log('ignore spacebar is ', ignoreSpacebar);
-
   // FALLING DOWN CANYON LOGIC
 
   if (
-    gameChar_x > canyon.x_pos + 100 &&
-    gameChar_x < canyon.x_pos + 80 + canyon.width
+    gameChar_world_x > canyon.x_pos &&
+    gameChar_world_x < canyon.x_pos + canyon.width
   ) {
     isFallingDownCanyon = true;
-
-    console.log('Character is falling down canyon');
   } else {
     isFallingDownCanyon = false;
   }
@@ -289,9 +320,21 @@ function draw() {
     }
   } else {
     if (isLeft) {
-      gameChar_x -= 5;
+      // gameChar_x -= 5;
+      if (gameChar_x > width * 0.2) {
+        gameChar_x -= 5; // Move character left on the screen
+      } else {
+        scrollPos += 5; // Scroll the world to the right
+      }
+      gameChar_world_x -= 5; // Update world position
     } else if (isRight) {
-      gameChar_x += 5;
+      // gameChar_x += 5;
+      if (gameChar_x < width * 0.8) {
+        gameChar_x += 5; // Move character right on the screen
+      } else {
+        scrollPos -= 5; // Scroll the world to the left
+      }
+      gameChar_world_x += 5; // Update world position
     } else if (isJumping && gameChar_y > 400) {
       gameChar_y -= 15;
     }
@@ -311,8 +354,6 @@ function draw() {
       gameChar_y += 15;
     }
   }
-
-  console.log('TEST', isFallingDownCanyon, gameChar_y);
 }
 
 function keyPressed() {
@@ -320,30 +361,23 @@ function keyPressed() {
   // keys are pressed.
 
   //open up the console to see how these work
-  console.log('keyPressed: ' + key);
-  console.log('keyPressed: ' + keyCode);
 
   if (keyCode == 37 && !isFallingDownCanyon) {
     isLeft = true;
-    console.log('left arrow', isLeft);
   } else if (keyCode == 39 && !isFallingDownCanyon) {
     isRight = true;
-    console.log('right arrow', isRight);
   } else if (keyCode == 32) {
     if (!ignoreSpacebar) {
-      console.log('Jump disabled is false and char can jump');
       isJumping = true;
       setTimeout(() => {
         ignoreSpacebar = true;
       }, 300);
     } else {
-      console.log('Jump disabled due to canyon fall or spacebar lock');
     }
   }
 
   if ((keyCode == 32 && isLeft) || (keyCode == 32 && isRight)) {
     isJumping = true;
-    console.log('spacebar', isJumping);
   }
 }
 
@@ -351,18 +385,13 @@ function keyReleased() {
   // if statements to control the animation of the character when
   // keys are released.
 
-  console.log('keyReleased: ' + key);
-  console.log('keyReleased: ' + keyCode);
   if (keyCode == 37) {
     isLeft = false;
-    console.log('left arrow', isLeft);
   } else if (keyCode == 39) {
     isRight = false;
-    console.log('right arrow', isRight);
   }
 
   if (keyCode == 32) {
     isJumpings = false;
-    console.log('spacebar', isJumpings);
   }
 }
