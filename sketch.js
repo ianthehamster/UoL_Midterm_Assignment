@@ -1,10 +1,8 @@
 /*
 
-The Game Project
+Game Project 4 - Side Scrolling
 
-Week 3
-
-Game interaction
+Mid Term Assignment
 
 */
 
