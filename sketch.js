@@ -23,6 +23,13 @@ var canyon;
 var trees_x;
 var treePos_y;
 
+var clouds_x;
+var clouds_y;
+
+var mountains_x;
+var mountains_y;
+var mountains_height;
+
 var scrollPos;
 var gameChar_world_x;
 
@@ -43,6 +50,28 @@ function apple(x_pos, y_pos, size) {
   fill(34, 139, 34);
   noStroke();
   ellipse(x_pos + 6, y_pos - 32, size - 15, size - 20);
+}
+
+function drawCloud(x_pos, y_pos, size) {
+  fill(255, 255, 255);
+  ellipse(x_pos + 200, y_pos + 150, 80, 80);
+  ellipse(x_pos + 160, y_pos + 150, 60, 60);
+  ellipse(x_pos + 240, y_pos + 150, 60, 60);
+}
+
+function drawMountainUpdated(x_pos, y_pos, height) {
+  fill(179, 189, 199);
+  noStroke();
+  triangle(x_pos, y_pos, x_pos + 100, height, x_pos + 200, y_pos);
+  fill(255, 255, 255);
+  triangle(
+    x_pos + 70,
+    y_pos - 250,
+    x_pos + 100,
+    height,
+    x_pos + 200 - 70,
+    y_pos - 250,
+  );
 }
 
 function setup() {
@@ -74,6 +103,13 @@ function setup() {
   trees_x = [300, 500, 900, 1200, 1450];
   treePos_y = floorPos_y;
 
+  clouds_x = [-100, 300, 500, , 600, 900, 1100, 1300];
+  clouds_y = [-60, -80, -50, -70, -90, -70, -100];
+
+  mountains_x = [300, 500];
+  mountains_y = 432;
+  mountains_height = [70, 80];
+
   scrollPos = 0;
   gameChar_world_x = gameChar_x;
 }
@@ -87,6 +123,21 @@ function draw() {
   noStroke();
   fill(0, 155, 0);
   rect(0, floorPos_y, width, height - floorPos_y); //draw some green ground
+  // console.log(scrollPos);
+
+  for (let i = 0; i < clouds_x.length; i++) {
+    let cloudScreenX = clouds_x[i] + scrollPos;
+
+    drawCloud(cloudScreenX, clouds_y[i]);
+  }
+
+  // drawMountainUpdated(500, 432, 70);
+  // drawMountainUpdated(300, 432, 80);
+
+  for (let i = 0; i < mountains_x.length; i++) {
+    let mountainScreenX = mountains_x[i] + scrollPos;
+    drawMountainUpdated(mountainScreenX, mountains_y, mountains_height[i]);
+  }
 
   for (let i = 0; i < trees_x.length; i++) {
     let treeScreenX = trees_x[i] + scrollPos; // Adjust position relative to scroll
@@ -113,6 +164,15 @@ function draw() {
 
   // draw collectable
   let collectableScreenX = collectable.x_pos + scrollPos;
+  // console.log('//////////////////////////////////////');
+  // console.log(
+  //   gameChar_x,
+  //   gameChar_y,
+  //   scrollPos,
+  //   collectable.x_pos,
+  //   collectable.y_pos,
+  // );
+  // console.log('//////////////////////////////////////');
   if (dist(gameChar_x, gameChar_y, collectable.x_pos, collectable.y_pos) < 20) {
     collectable.isFound = true;
   }
