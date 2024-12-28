@@ -275,7 +275,7 @@ function draw() {
   // FALLING DOWN CANYON LOGIC
 
   if (
-    gameChar_world_x > canyon.x_pos &&
+    gameChar_world_x > canyon.x_pos + 50 &&
     gameChar_world_x < canyon.x_pos + canyon.width
   ) {
     isFallingDownCanyon = true;
