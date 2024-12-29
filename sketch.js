@@ -30,7 +30,7 @@ var mountains_x;
 var mountains_y;
 var mountains_height;
 
-var scrollPos;
+// var scrollPos;
 var gameChar_world_x;
 
 var cameraPosX;
@@ -112,7 +112,7 @@ function setup() {
   mountains_y = 432;
   mountains_height = [70, 80];
 
-  scrollPos = 0;
+  // scrollPos = 0;
   gameChar_world_x = gameChar_x;
 
   cameraPosX = 0;
@@ -120,6 +120,8 @@ function setup() {
 
 function draw() {
   ///////////DRAWING CODE//////////
+  console.log(gameChar_x, cameraPosX);
+  cameraPosX = gameChar_x - 600;
 
   background(100, 155, 255); //fill the sky blue
   if (!isFallingDownCanyon) gameChar_y = Math.min(432, gameChar_y);
@@ -130,24 +132,22 @@ function draw() {
   // console.log(scrollPos);
   push();
 
-  translate(cameraPosX, 0);
+  translate(-cameraPosX, 0);
 
   for (let i = 0; i < clouds_x.length; i++) {
-    let cloudScreenX = clouds_x[i] + scrollPos;
-
+    // let cloudScreenX = clouds_x[i] + scrollPos;
+    let cloudScreenX = clouds_x[i];
     drawCloud(cloudScreenX, clouds_y[i]);
   }
 
-  // drawMountainUpdated(500, 432, 70);
-  // drawMountainUpdated(300, 432, 80);
-
   for (let i = 0; i < mountains_x.length; i++) {
-    let mountainScreenX = mountains_x[i] + scrollPos;
+    let mountainScreenX = mountains_x[i];
     drawMountainUpdated(mountainScreenX, mountains_y, mountains_height[i]);
   }
 
   for (let i = 0; i < trees_x.length; i++) {
-    let treeScreenX = trees_x[i] + scrollPos; // Adjust position relative to scroll
+    let treeScreenX = trees_x[i];
+
     fill(100, 50, 0);
     rect(treeScreenX - 25, -150 + treePos_y, 50, 150);
     fill(0, 100, 0);
@@ -170,7 +170,8 @@ function draw() {
   }
 
   // draw collectable
-  let collectableScreenX = collectable.x_pos + scrollPos;
+
+  let collectableScreenX = collectable.x_pos;
 
   if (dist(gameChar_x, gameChar_y, collectable.x_pos, collectable.y_pos) < 20) {
     collectable.isFound = true;
@@ -184,7 +185,8 @@ function draw() {
   }
 
   // Draw the canyon
-  let canyonScreenX = canyon.x_pos + scrollPos;
+
+  let canyonScreenX = canyon.x_pos;
   fill(100, 50, 0);
   rect(canyonScreenX, 432, canyon.width, 144);
 
@@ -336,8 +338,8 @@ function draw() {
   // FALLING DOWN CANYON LOGIC
 
   if (
-    gameChar_world_x > canyon.x_pos + 50 &&
-    gameChar_world_x < canyon.x_pos + canyon.width
+    gameChar_x > canyon.x_pos + 50 &&
+    gameChar_x < canyon.x_pos + canyon.width
   ) {
     isFallingDownCanyon = true;
   } else {
@@ -346,11 +348,7 @@ function draw() {
 
   ///////////INTERACTION CODE//////////
   //Put conditional statements to move the game character below here
-  // if (gameChar_y < 582 && gameChar_y > 442) {
-  //   ignoreSpacebar = true;
-  // } else if (gameChar_y == 582) {
-  //   ignoreSpacebar = false;
-  // }
+
   if (isFallingDownCanyon && gameChar_y >= 432) {
     gameChar_y += 10; // Fall faster into the canyon
     if (gameChar_y >= height) {
@@ -381,21 +379,9 @@ function draw() {
     }
   } else {
     if (isLeft) {
-      // gameChar_x -= 5;
-      if (gameChar_x > width * 0.2) {
-        gameChar_x -= 5; // Move character left on the screen
-      } else {
-        scrollPos += 5; // Scroll the world to the right
-      }
-      gameChar_world_x -= 5; // Update world position
+      gameChar_x -= 5;
     } else if (isRight) {
-      // gameChar_x += 5;
-      if (gameChar_x < width * 0.8) {
-        gameChar_x += 5; // Move character right on the screen
-      } else {
-        scrollPos -= 5; // Scroll the world to the left
-      }
-      gameChar_world_x += 5; // Update world position
+      gameChar_x += 5;
     } else if (isJumping && gameChar_y > 400) {
       gameChar_y -= 15;
     }
@@ -418,11 +404,6 @@ function draw() {
 }
 
 function keyPressed() {
-  // if statements to control the animation of the character when
-  // keys are pressed.
-
-  //open up the console to see how these work
-
   if (keyCode == 37 && !isFallingDownCanyon) {
     isLeft = true;
   } else if (keyCode == 39 && !isFallingDownCanyon) {
@@ -443,9 +424,6 @@ function keyPressed() {
 }
 
 function keyReleased() {
-  // if statements to control the animation of the character when
-  // keys are released.
-
   if (keyCode == 37) {
     isLeft = false;
   } else if (keyCode == 39) {
