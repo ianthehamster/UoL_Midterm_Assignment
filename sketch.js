@@ -35,6 +35,8 @@ var gameChar_world_x;
 
 var cameraPosX;
 
+var enemy;
+
 function apple(x_pos, y_pos, size) {
   // Main apple body
   fill(255, 0, 0);
@@ -87,6 +89,7 @@ function setup() {
   isFallingDueToGravity = false;
   isFallingDownCanyon = false;
   isJumping = false;
+  isPlayerDead = false;
 
   collectable = {
     x_pos: 339,
@@ -102,26 +105,65 @@ function setup() {
 
   ignoreSpacebar = false;
 
-  trees_x = [300, 500, 900, 1200, 1450];
+  trees_x = [
+    300,
+    500,
+    900,
+    1200,
+    1450,
+    1600,
+    1780,
+    1990,
+    2200,
+    ,
+    2400,
+    2700,
+    2900,
+    3200,
+    3600,
+  ];
   treePos_y = floorPos_y;
 
   clouds_x = [-100, 300, 500, , 600, 900, 1100, 1300];
   clouds_y = [-60, -80, -50, -70, -90, -70, -100];
 
-  mountains_x = [300, 500];
+  mountains_x = [300, 500, 800, 900, 1200, 1300, 1400];
   mountains_y = 432;
-  mountains_height = [70, 80];
+  mountains_height = [70, 80, 70, 80, 70, 75, 85];
 
   // scrollPos = 0;
   gameChar_world_x = gameChar_x;
 
   cameraPosX = 0;
+
+  enemy = {
+    x_pos: 600,
+    y_pos: floorPos_y - 20,
+    size: 30,
+    speed: 2,
+    range: 200,
+    direction: 1,
+  };
+}
+
+function drawEnemy() {
+  fill(255, 102, 255);
+  ellipse(enemy.x_pos, enemy.y_pos, enemy.size, enemy.size);
+}
+
+function updateEnemy() {
+  enemy.x_pos += enemy.speed * enemy.direction;
+
+  if (enemy.x_pos > 600 + enemy.range || enemy.x_pos < 400 + enemy.range) {
+    enemy.direction *= -1;
+  }
 }
 
 function draw() {
   ///////////DRAWING CODE//////////
-  console.log(gameChar_x, cameraPosX);
+
   cameraPosX = gameChar_x - 600;
+  gameChar_world_x = gameChar_x;
 
   background(100, 155, 255); //fill the sky blue
   if (!isFallingDownCanyon) gameChar_y = Math.min(432, gameChar_y);
@@ -129,13 +171,12 @@ function draw() {
   noStroke();
   fill(0, 155, 0);
   rect(0, floorPos_y, width, height - floorPos_y); //draw some green ground
-  // console.log(scrollPos);
+
   push();
 
   translate(-cameraPosX, 0);
 
   for (let i = 0; i < clouds_x.length; i++) {
-    // let cloudScreenX = clouds_x[i] + scrollPos;
     let cloudScreenX = clouds_x[i];
     drawCloud(cloudScreenX, clouds_y[i]);
   }
@@ -170,22 +211,28 @@ function draw() {
   }
 
   // draw collectable
-
   let collectableScreenX = collectable.x_pos;
 
   if (dist(gameChar_x, gameChar_y, collectable.x_pos, collectable.y_pos) < 20) {
     collectable.isFound = true;
   }
   if (!collectable.isFound) {
-    // apple(collectable.x_pos - 36, collectable.y_pos, collectable.size);
     apple(collectableScreenX, collectable.y_pos, collectable.size);
+  }
 
-    // apple(collectable.x_pos + 100, collectable.y_pos, collectable.size);
-    // apple(canyon.x_pos - 310, collectable.y_pos, collectable.size);
+  // Draw the enemy
+  drawEnemy();
+  updateEnemy();
+
+  console.log(gameChar_x, gameChar_y, enemy.x_pos, enemy.y_pos);
+  if (dist(gameChar_x, gameChar_y, enemy.x_pos, enemy.y_pos) < 40) {
+    console.log('Dead');
+    isPlayerDead = true;
+    gameChar_x = width / 2;
+    gameChar_y = floorPos_y;
   }
 
   // Draw the canyon
-
   let canyonScreenX = canyon.x_pos;
   fill(100, 50, 0);
   rect(canyonScreenX, 432, canyon.width, 144);
@@ -383,7 +430,7 @@ function draw() {
     } else if (isRight) {
       gameChar_x += 5;
     } else if (isJumping && gameChar_y > 400) {
-      gameChar_y -= 15;
+      gameChar_y -= 60;
     }
 
     if (ignoreSpacebar && gameChar_y <= 432) {
@@ -392,11 +439,11 @@ function draw() {
     }
 
     if (isLeft && isJumping && gameChar_y > 400) {
-      gameChar_y -= 20;
+      gameChar_y -= 60;
     } else if (!isJumping && gameChar_y < 432) {
       gameChar_y += 15;
     } else if (isRight && isJumping && gameChar_y > 400) {
-      gameChar_y -= 15;
+      gameChar_y -= 60;
     } else if (!isJumping && gameChar_y < 432) {
       gameChar_y += 15;
     }
