@@ -33,6 +33,8 @@ var mountains_height;
 var scrollPos;
 var gameChar_world_x;
 
+var cameraPosX;
+
 function apple(x_pos, y_pos, size) {
   // Main apple body
   fill(255, 0, 0);
@@ -112,6 +114,8 @@ function setup() {
 
   scrollPos = 0;
   gameChar_world_x = gameChar_x;
+
+  cameraPosX = 0;
 }
 
 function draw() {
@@ -124,6 +128,9 @@ function draw() {
   fill(0, 155, 0);
   rect(0, floorPos_y, width, height - floorPos_y); //draw some green ground
   // console.log(scrollPos);
+  push();
+
+  translate(cameraPosX, 0);
 
   for (let i = 0; i < clouds_x.length; i++) {
     let cloudScreenX = clouds_x[i] + scrollPos;
@@ -164,15 +171,7 @@ function draw() {
 
   // draw collectable
   let collectableScreenX = collectable.x_pos + scrollPos;
-  // console.log('//////////////////////////////////////');
-  // console.log(
-  //   gameChar_x,
-  //   gameChar_y,
-  //   scrollPos,
-  //   collectable.x_pos,
-  //   collectable.y_pos,
-  // );
-  // console.log('//////////////////////////////////////');
+
   if (dist(gameChar_x, gameChar_y, collectable.x_pos, collectable.y_pos) < 20) {
     collectable.isFound = true;
   }
@@ -331,6 +330,8 @@ function draw() {
     line(gameChar_x - 13, gameChar_y - 35, gameChar_x - 30, gameChar_y - 30);
     line(gameChar_x + 13, gameChar_y - 35, gameChar_x + 30, gameChar_y - 30);
   }
+
+  pop();
 
   // FALLING DOWN CANYON LOGIC
 
