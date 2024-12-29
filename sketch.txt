@@ -6,6 +6,8 @@ Mid Term Assignment
 
 */
 
+// Start
+
 var gameChar_x;
 var gameChar_y;
 var floorPos_y;
@@ -458,6 +460,8 @@ function keyPressed() {
     isJumping = true;
   }
 }
+
+// End
 
 function keyReleased() {
   if (keyCode == 37) {
