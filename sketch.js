@@ -39,6 +39,9 @@ var cameraPosX;
 var enemy;
 
 var game_score;
+var flagpole;
+var lives;
+var playerLostLife;
 
 function drawCanyon(t_canyon) {
   fill(100, 50, 0);
@@ -151,17 +154,12 @@ function checkCollectable(temp_collectable) {
     ) < 20
   ) {
     temp_collectable.isFound = true;
+    console.log('You have found a collectable', temp_collectable);
+    game_score += 1;
   }
 }
 
 function checkCanyon(canyon) {
-  console.log(
-    canyon.x_pos + 20,
-    canyon.x_pos + canyon.width,
-    gameChar_x,
-    gameChar_y,
-    isFallingDownCanyon,
-  );
   if (
     gameChar_x > canyon.x_pos + 20 &&
     gameChar_x < canyon.x_pos + canyon.width &&
@@ -176,6 +174,51 @@ function checkCanyon(canyon) {
       gameChar_y,
       isFallingDownCanyon,
     );
+  }
+}
+
+function renderFlagpole() {
+  // push and pop ensures stroke and fill do not affect other elements
+  push();
+  stroke(0);
+  strokeWeight(5);
+  line(flagpole.x_pos, floorPos_y, flagpole.x_pos, floorPos_y - 250);
+  fill(0, 255, 0);
+
+  if (flagpole.isReached) {
+    noStroke();
+    rect(flagpole.x_pos, floorPos_y - 250, 100, 50);
+    fill(0);
+    text('You made it!', flagpole.x_pos + 20, floorPos_y - 220);
+  } else {
+    rect(flagpole.x_pos, floorPos_y - 50, 100, 50);
+  }
+  pop();
+}
+
+function checkFlagpole() {
+  // if (dist(gameChar_world_x, gameChar_y, flagpole.x_pos, floorPos_y) < 50) {
+  //   flagpole.isReached = true;
+  // }
+  var d = abs(gameChar_world_x - flagpole.x_pos);
+
+  if (d < 15) {
+    flagpole.isReached = true;
+  }
+  console.log('Distance to flagpole', d);
+}
+
+function checkPlayerDie() {
+  // if (gameChar_y >= height) {
+  //   lives -= 1;
+  //   if (lives >= 0) {
+  //     startGame();
+  //   }
+  // }
+  if (gameChar_y >= 576) {
+    playerLostLife = true;
+    lives -= 1;
+    playerLostLife = false;
   }
 }
 
@@ -283,6 +326,14 @@ function setup() {
   };
 
   game_score = 0;
+
+  flagpole = {
+    isReached: false,
+    x_pos: 2300,
+  };
+
+  lives = 3;
+  playerLostLife = false;
 }
 
 function draw() {
@@ -297,6 +348,11 @@ function draw() {
   noStroke();
   fill(0, 155, 0);
   rect(0, floorPos_y, width, height - floorPos_y); //draw some green ground
+
+  fill(255);
+  noStroke();
+  text('score: ' + game_score, 30, 20);
+  text('lives: ' + lives, 30, 40);
 
   push();
 
@@ -340,18 +396,10 @@ function draw() {
   // draw collectable
 
   for (let i = 0; i < temp_collectable.length; i++) {
-    apple1(temp_collectable[i]);
-    checkCollectable(temp_collectable[i]);
-    // if (
-    //   dist(
-    //     gameChar_x,
-    //     gameChar_y,
-    //     temp_collectable[i].x_pos,
-    //     temp_collectable[i].y_pos,
-    //   ) < 20
-    // ) {
-    //   temp_collectable[i].isFound = true;
-    // }
+    if (!temp_collectable[i].isFound) {
+      apple1(temp_collectable[i]);
+      checkCollectable(temp_collectable[i]);
+    }
   }
 
   // Draw the enemy
@@ -370,6 +418,8 @@ function draw() {
   for (let i = 0; i < canyon.length; i++) {
     drawCanyon(canyon[i]);
   }
+
+  renderFlagpole();
 
   //the game character
   if (isLeft && isJumping) {
@@ -527,7 +577,6 @@ function draw() {
   //Put conditional statements to move the game character below here
 
   if (isFallingDownCanyon) {
-    console.log('Game Character must fall');
     gameChar_y += 10; // Fall faster into the canyon
     if (gameChar_y >= height) {
       gameChar_y = height; // Stop falling once at the bottom
@@ -535,22 +584,10 @@ function draw() {
       ignoreSpacebar = false;
 
       if (isJumping && gameChar_y == 576) {
-        console.log(
-          'Jumping at bottom of canyon',
-          gameChar_y,
-          'isFallingDownCanyon',
-          isFallingDownCanyon,
-        );
         gameChar_y -= 100;
         isJumping = false;
 
         if (gameChar_y >= 476) {
-          console.log(
-            'Jumping at bottom of canyon',
-            gameChar_y,
-            'isFallingDownCanyon',
-            isFallingDownCanyon,
-          );
           gameChar_y += 10;
         }
       }
@@ -578,6 +615,14 @@ function draw() {
     } else if (!isJumping && gameChar_y < 432) {
       gameChar_y += 5;
     }
+  }
+  if (flagpole.isReached == false) {
+    checkFlagpole();
+  }
+
+  if (gameChar_y >= 576 && !playerLostLife) {
+    playerLostLife = true;
+    lives -= 1;
   }
 }
 
