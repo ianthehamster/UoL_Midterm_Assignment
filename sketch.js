@@ -215,16 +215,17 @@ function checkPlayerDie() {
   //     startGame();
   //   }
   // }
-  if (gameChar_y >= 576) {
+  if (gameChar_y >= 576 && !playerLostLife) {
     playerLostLife = true;
     lives -= 1;
-    playerLostLife = false;
+  }
+
+  if (lives > 0 && playerLostLife) {
+    startGame();
   }
 }
 
-function setup() {
-  createCanvas(1024, 576);
-  floorPos_y = (height * 3) / 4;
+function startGame() {
   gameChar_x = width / 2;
   gameChar_y = floorPos_y;
 
@@ -331,9 +332,122 @@ function setup() {
     isReached: false,
     x_pos: 2300,
   };
+  playerLostLife = false;
+}
+
+function setup() {
+  createCanvas(1024, 576);
+  floorPos_y = (height * 3) / 4;
+  startGame();
+  // gameChar_x = width / 2;
+  // gameChar_y = floorPos_y;
+
+  // isLeft = false;
+  // isRight = false;
+  // isFallingDueToGravity = false;
+  // isFallingDownCanyon = false;
+  // isJumping = false;
+  // isPlayerDead = false;
+
+  // collectable = {
+  //   x_pos: 339,
+  //   y_pos: 432,
+  //   size: 30,
+  //   isFound: false,
+  // };
+
+  // temp_collectable = [
+  //   {
+  //     x_pos: 400,
+  //     y_pos: 432,
+  //     size: 30,
+  //     isFound: false,
+  //   },
+  //   {
+  //     x_pos: 600,
+  //     y_pos: 432,
+  //     size: 30,
+  //     isFound: false,
+  //   },
+  //   {
+  //     x_pos: -100,
+  //     y_pos: 432,
+  //     size: 30,
+  //     isFound: false,
+  //   },
+  //   {
+  //     x_pos: 800,
+  //     y_pos: 432,
+  //     size: 30,
+  //     isFound: false,
+  //   },
+  //   {
+  //     x_pos: 890,
+  //     y_pos: 432,
+  //     size: 30,
+  //     isFound: false,
+  //   },
+  // ];
+
+  // canyon = [
+  //   {
+  //     x_pos: 20,
+  //     width: 100,
+  //   },
+  //   {
+  //     x_pos: 1020,
+  //     width: 120,
+  //   },
+  //   {
+  //     x_pos: 1520,
+  //     width: 100,
+  //   },
+  //   {
+  //     x_pos: 2100,
+  //     width: 100,
+  //   },
+  // ];
+
+  // ignoreSpacebar = false;
+
+  // trees_x = [
+  //   -1000, -800, -570, -380, -50, 300, 500, 900, 1200, 1450, 1780, 1990, 2200,
+  //   2700, 2900, 3200, 3600,
+  // ];
+  // treePos_y = floorPos_y;
+
+  // clouds_x = [
+  //   -100, 300, 500, 600, 900, 1100, 1400, 1500, 1600, 1800, 1998, 2300,
+  // ];
+  // clouds_y = [-60, -80, -50, -70, -90, -70, -100, -90, -70, -100, -50, -80];
+
+  // mountains_x = [300, 500, 800, 900, 1200, 1300, 1400];
+  // mountains_y = 432;
+  // mountains_height = [70, 80, 70, 90, 70, 60, 95];
+
+  // // scrollPos = 0;
+  // gameChar_world_x = gameChar_x;
+
+  // cameraPosX = 0;
+
+  // enemy = {
+  //   x_pos: 600,
+  //   y_pos: floorPos_y - 20,
+  //   size: 30,
+  //   speed: 2,
+  //   range: 200,
+  //   direction: 1,
+  // };
+
+  // game_score = 0;
+
+  // flagpole = {
+  //   isReached: false,
+  //   x_pos: 2300,
+  // };
 
   lives = 3;
-  playerLostLife = false;
+  // playerLostLife = false;
 }
 
 function draw() {
@@ -620,10 +734,11 @@ function draw() {
     checkFlagpole();
   }
 
-  if (gameChar_y >= 576 && !playerLostLife) {
-    playerLostLife = true;
-    lives -= 1;
-  }
+  // if (gameChar_y >= 576 && !playerLostLife) {
+  //   playerLostLife = true;
+  //   lives -= 1;
+  // }
+  checkPlayerDie();
 }
 
 function keyPressed() {
