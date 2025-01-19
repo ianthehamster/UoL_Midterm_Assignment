@@ -1,4 +1,4 @@
-### The Game Project 6 â€“ Adding game mechanics
+### The Game Project 6 - Adding game mechanics
 
 This weekâ€™s project builds upon the sketch from last week. Before starting this project make sure you have completed all steps from last week and tested your game thoroughly.
 
