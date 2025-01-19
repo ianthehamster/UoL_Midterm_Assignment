@@ -1,57 +1,62 @@
-### The Game Project 5 - multiple interactables
+### The Game Project 6 â€“ Adding game mechanics
 
-It's time to level up our game by making multiple interactable items to populate our game world. Our code is getting quite complex now so first we'll take this opportunity to do some refactoring making it more navigable.
+This weekâ€™s project builds upon the sketch from last week. Before starting this project make sure you have completed all steps from last week and tested your game thoroughly.
 
-1. Refactor background items rendering [3 marks]
+Create a copy of your sketch directory from last week and rename it to something like `game-project-6`. Keep your completed project from last week safe as a reference, and make the following changes to the code
+in your new game directory.
 
-   - At the bottom of your code, create three new functions called `drawClouds`, `drawMountains`, and `drawTrees`
-   - Cut and paste each `for loop` from your `draw` function into the relevant new function.
-   - In the `draw` function, where the drawing code was previously, call each of the three new functions (eg. `drawClouds()`)
-   - You should now see all of the above items drawn to the screen as before
+1. Add a score counter [1 marks]
 
-2. Refactor collectable rendering [3 marks]
+   - create a global variable called `gameScore`
+   - increment `gameScore` by one each time the character collects an item.
+   - HINT: you may need an extra conditional to prevent the score being added multiple times
+   - use the text function to draw the score on the screen.
 
-   - We're going to do something slightly different in this case, we're going to pass the collectable as an argument to our render function
-   - At the bottom of your code, create a function called `drawCollectable`
-   - It should take a single argument called `t_collectable` like so `function drawCollectable(t_collectable)`
-   - Cut and paste the drawing code for the collectable from the `draw` function and into your `drawCollectable` function
-   - Now replace any reference to collectable with t_collectable
-   - Finally in the `draw` function, where the drawing code was previously, call `drawCollectable` passing collectable as an argument
-   - You should see your collectable appearing in the same place as previously
+2. Add a flagpole [1 marks]
 
-3. Refactor canyon rendering [3 marks]
+   - We need to add an end to your level. I have chosen a flagpole but you can chose according to the theme of your game.
+   - Initialise an object called `flagpole`, it should at least have the properties `x_pos` and `isReached`.
+   - set `isReached` to `false` and `x_pos` to a world position at the very end of your level.
+   - create a function called `drawFlagpole` and call this from the draw function
+   - complete the function to draw your flagpole in two states. One for when `isReached` is false,
+     and one for when it is `true`
 
-   - Repeat the same process for canyon as in step 2
-   - You should end up with a function called `drawCanyon` which is called from the `draw` function passing `canyon` as an argument
+3. Flagpole checking function [1 marks]
 
-4. Refactor collectable interaction [3 marks]
+   - create a function called `checkFlagpole`
+   - call the function from `draw`, but write a conditional so that `checkFlagpole` is only called when `flagpole.isReached` is `false`
+   - in `checkFlagpole` write a conditional such that when the gameChar is in range of the flagpole
+     its `isReached` property is set to `true`
 
-   - Your code which sets the `isFound` property of collectable to true should still be in the draw loop. Lets refactor that too
-   - Create a function called `checkCollectable` which takes an argument called `t_collectable`
-   - Cut and paste your collectable interaction code from the `draw` function into this new function replacing all references to `collectable` with `t_collectable`
-   - Finally in the `draw` function, where the interaction code was previously, call `checkCollectable` passing collectable as an argument
-   - You should find that your collectable interaction works just as before
+4. Add lives [2 marks]
 
-5. Refactor canyon interaction [3 marks]
+   - Your character should begin with three lives, and each time they fall down a canyon the game
+     should reset and their remaining lives decrement by one.
+   - Create a global variable `lives`, and initialise it to `3` within `setup`.
+   - Create a function called `checkPlayerDie`. Call this within draw.
+   - In this function define a conditional statement that tests if your character has fallen below
+     the bottom of the canvas. When this is `true`, decrement the `lives` counter by one
+   - Create a new function called `startGame()`.
+   - Move everything from `setup` except `createCanvas` and the initialisation of `floorPos_y` and
+     `lives` into this new function.
+   - At the end of your now very short `setup` function call `startGame()`.
+   - In `checkPlayerDie` create a conditional statement to test if the player has
+     used all of their lives. If there are lives remaining call `startGame`.
+   - Write some code using a `for` loop to draw life tokens onto the screen so that you
+     can keep track of how many lives you have remaining.
 
-   - Repeat stage 4 but for the canyon
-   - You should end up with a function called `checkCanyon` which is called from the `draw` function passing `canyon` as an argument
-   - Make sure your canyon interaction works for all of your canyons
+5. "Game over" and "Level complete" text [2 marks]
 
-6. Create multiple collectables [3 marks]
+   - In the draw loop, after your drawing code and before your game logic code, write two conditional statements
+   - The first displays "Game over" when `lives` is less than 1.
+   - The other displays "Level complete" when`flagpole.isReached` is true
+   - Write further conditionals in the draw and keyPressed functions to ensure that no further interaction is possible once these end of game states have been reached.
 
-   - Create a global variable called `collectables` and initialise it to an array
-   - Fill the array with lots of collectable objects. You can copy and paste from your original collectable object but be sure to alter the x_pos property so that the collectables appear in different places in your game world.
-   - In the `draw` function, wrap the calls to `drawCollectable` and `checkCollectable` in a for loop which traverses collectables
-   - Instead of passing `collectable` to your functions pass a reference to the particular collectable in your `collectables` array (eg. `drawCollectable(collectables[i])`).
-   - Once you've done this delete the declaration and initialisation of your old single `collectable` . It's now redundant code.
-   - If every thing is working correctly you should see multiple collectables and be able to interact with them independently.
-
-7. Create multiple canyons [3 marks]
-   - Repeat stage 6 but for canyons.
-   - Once you're satisfied that the interaction and rendering is working try varying the width of the canyons
-
-#### Things to watch out for
-
-- For collectables and canyons, make sure you are using the passed in arguments in your refactored code . You should be using `t_canyon` , NOT `canyon` or `canyons[i]`
-- Delete your unused variables. You will lose marks for leaving redundant code in.
+6. Tidy your code [3 marks]
+   - make sure your code is elegant
+   - remove all commented blocks of code
+   - check all indentations
+   - make your variable names are consistent
+   - remove any redundant code
+   - refactor unwieldy drawing code
+   - break up long commands onto multiple lines
