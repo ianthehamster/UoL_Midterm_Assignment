@@ -29,6 +29,7 @@ var clouds_y;
 var mountains_x;
 var mountains_y;
 var mountains_height;
+var temp_collectable;
 
 // var scrollPos;
 var gameChar_world_x;
@@ -37,33 +38,82 @@ var cameraPosX;
 
 var enemy;
 
-function apple(x_pos, y_pos, size) {
+var game_score;
+
+function drawCanyon(t_canyon) {
+  fill(100, 50, 0);
+  rect(t_canyon.x_pos, 432, t_canyon.width, 144);
+}
+
+function apple1(t_collectable) {
+  if (
+    dist(gameChar_x, gameChar_y, t_collectable.x_pos, t_collectable.y_pos) < 20
+  ) {
+    collectable.isFound = true;
+  }
   // Main apple body
-  fill(255, 0, 0);
-  noStroke();
-  ellipse(x_pos, y_pos - 15, size, size);
+  if (!t_collectable.isFound) {
+    fill(255, 0, 0);
+    noStroke();
+    ellipse(
+      t_collectable.x_pos,
+      t_collectable.y_pos - 15,
+      t_collectable.size,
+      t_collectable.size,
+    );
 
-  fill(255, 0, 0);
-  arc(x_pos + 6, y_pos - 27, size - 20, size - 20, PI, TWO_PI);
-  arc(x_pos - 6, y_pos - 27, size - 20, size - 20, PI, TWO_PI);
+    fill(255, 0, 0);
+    arc(
+      t_collectable.x_pos + 6,
+      t_collectable.y_pos - 27,
+      t_collectable.size - 20,
+      t_collectable.size - 20,
+      PI,
+      TWO_PI,
+    );
+    arc(
+      t_collectable.x_pos - 6,
+      t_collectable.y_pos - 27,
+      t_collectable.size - 20,
+      t_collectable.size - 20,
+      PI,
+      TWO_PI,
+    );
 
-  stroke(101, 67, 33);
-  strokeWeight(2);
-  line(x_pos, y_pos - 40, x_pos, y_pos - 39);
+    stroke(101, 67, 33);
+    strokeWeight(2);
+    line(
+      t_collectable.x_pos,
+      t_collectable.y_pos - 40,
+      t_collectable.x_pos,
+      t_collectable.y_pos - 39,
+    );
 
-  fill(34, 139, 34);
-  noStroke();
-  ellipse(x_pos + 6, y_pos - 32, size - 15, size - 20);
+    fill(34, 139, 34);
+    noStroke();
+    ellipse(
+      t_collectable.x_pos + 6,
+      t_collectable.y_pos - 32,
+      t_collectable.size - 15,
+      t_collectable.size - 20,
+    );
+  }
 }
 
-function drawCloud(x_pos, y_pos, size) {
-  fill(255, 255, 255);
-  ellipse(x_pos + 200, y_pos + 150, 80, 80);
-  ellipse(x_pos + 160, y_pos + 150, 60, 60);
-  ellipse(x_pos + 240, y_pos + 150, 60, 60);
+function drawCloud() {
+  for (let i = 0; i < clouds_x.length; i++) {
+    fill(255, 255, 255);
+    ellipse(clouds_x[i] + 200, clouds_y[i] + 150, 80, 80);
+    ellipse(clouds_x[i] + 160, clouds_y[i] + 150, 60, 60);
+    ellipse(clouds_x[i] + 240, clouds_y[i] + 150, 60, 60);
+  }
+  // fill(255, 255, 255);
+  // ellipse(x_pos + 200, y_pos + 150, 80, 80);
+  // ellipse(x_pos + 160, y_pos + 150, 60, 60);
+  // ellipse(x_pos + 240, y_pos + 150, 60, 60);
 }
 
-function drawMountainUpdated(x_pos, y_pos, height) {
+function drawMountain(x_pos, y_pos, height) {
   fill(179, 189, 199);
   noStroke();
   triangle(x_pos, y_pos, x_pos + 100, height, x_pos + 200, y_pos);
@@ -76,6 +126,57 @@ function drawMountainUpdated(x_pos, y_pos, height) {
     x_pos + 200 - 70,
     y_pos - 250,
   );
+}
+
+function drawEnemy() {
+  fill(255, 102, 255);
+  ellipse(enemy.x_pos, enemy.y_pos, enemy.size, enemy.size);
+}
+
+function updateEnemy() {
+  enemy.x_pos += enemy.speed * enemy.direction;
+
+  if (enemy.x_pos > 600 + enemy.range || enemy.x_pos < 400 + enemy.range) {
+    enemy.direction *= -1;
+  }
+}
+
+function checkCollectable(temp_collectable) {
+  if (
+    dist(
+      gameChar_x,
+      gameChar_y,
+      temp_collectable.x_pos,
+      temp_collectable.y_pos,
+    ) < 20
+  ) {
+    temp_collectable.isFound = true;
+  }
+}
+
+function checkCanyon(canyon) {
+  console.log(
+    canyon.x_pos + 20,
+    canyon.x_pos + canyon.width,
+    gameChar_x,
+    gameChar_y,
+    isFallingDownCanyon,
+  );
+  if (
+    gameChar_x > canyon.x_pos + 20 &&
+    gameChar_x < canyon.x_pos + canyon.width &&
+    gameChar_y >= 432
+  ) {
+    isFallingDownCanyon = true;
+    console.log('Game Character should fall');
+    console.log(
+      canyon.x_pos + 20,
+      canyon.x_pos + canyon.width,
+      gameChar_x,
+      gameChar_y,
+      isFallingDownCanyon,
+    );
+  }
 }
 
 function setup() {
@@ -98,38 +199,74 @@ function setup() {
     isFound: false,
   };
 
-  canyon = {
-    x_pos: 20,
-    width: 100,
-  };
+  temp_collectable = [
+    {
+      x_pos: 400,
+      y_pos: 432,
+      size: 30,
+      isFound: false,
+    },
+    {
+      x_pos: 600,
+      y_pos: 432,
+      size: 30,
+      isFound: false,
+    },
+    {
+      x_pos: -100,
+      y_pos: 432,
+      size: 30,
+      isFound: false,
+    },
+    {
+      x_pos: 800,
+      y_pos: 432,
+      size: 30,
+      isFound: false,
+    },
+    {
+      x_pos: 890,
+      y_pos: 432,
+      size: 30,
+      isFound: false,
+    },
+  ];
+
+  canyon = [
+    {
+      x_pos: 20,
+      width: 100,
+    },
+    {
+      x_pos: 1020,
+      width: 120,
+    },
+    {
+      x_pos: 1520,
+      width: 100,
+    },
+    {
+      x_pos: 2100,
+      width: 100,
+    },
+  ];
 
   ignoreSpacebar = false;
 
   trees_x = [
-    300,
-    500,
-    900,
-    1200,
-    1450,
-    1600,
-    1780,
-    1990,
-    2200,
-    ,
-    2400,
-    2700,
-    2900,
-    3200,
-    3600,
+    -1000, -800, -570, -380, -50, 300, 500, 900, 1200, 1450, 1780, 1990, 2200,
+    2700, 2900, 3200, 3600,
   ];
   treePos_y = floorPos_y;
 
-  clouds_x = [-100, 300, 500, , 600, 900, 1100, 1300];
-  clouds_y = [-60, -80, -50, -70, -90, -70, -100];
+  clouds_x = [
+    -100, 300, 500, 600, 900, 1100, 1400, 1500, 1600, 1800, 1998, 2300,
+  ];
+  clouds_y = [-60, -80, -50, -70, -90, -70, -100, -90, -70, -100, -50, -80];
 
   mountains_x = [300, 500, 800, 900, 1200, 1300, 1400];
   mountains_y = 432;
-  mountains_height = [70, 80, 70, 80, 70, 75, 85];
+  mountains_height = [70, 80, 70, 90, 70, 60, 95];
 
   // scrollPos = 0;
   gameChar_world_x = gameChar_x;
@@ -144,19 +281,8 @@ function setup() {
     range: 200,
     direction: 1,
   };
-}
 
-function drawEnemy() {
-  fill(255, 102, 255);
-  ellipse(enemy.x_pos, enemy.y_pos, enemy.size, enemy.size);
-}
-
-function updateEnemy() {
-  enemy.x_pos += enemy.speed * enemy.direction;
-
-  if (enemy.x_pos > 600 + enemy.range || enemy.x_pos < 400 + enemy.range) {
-    enemy.direction *= -1;
-  }
+  game_score = 0;
 }
 
 function draw() {
@@ -176,14 +302,15 @@ function draw() {
 
   translate(-cameraPosX, 0);
 
-  for (let i = 0; i < clouds_x.length; i++) {
-    let cloudScreenX = clouds_x[i];
-    drawCloud(cloudScreenX, clouds_y[i]);
-  }
+  drawCloud();
+  // for (let i = 0; i < clouds_x.length; i++) {
+  //   let cloudScreenX = clouds_x[i];
+  //   drawCloud(cloudScreenX, clouds_y[i]);
+  // }
 
   for (let i = 0; i < mountains_x.length; i++) {
     let mountainScreenX = mountains_x[i];
-    drawMountainUpdated(mountainScreenX, mountains_y, mountains_height[i]);
+    drawMountain(mountainScreenX, mountains_y, mountains_height[i]);
   }
 
   for (let i = 0; i < trees_x.length; i++) {
@@ -211,20 +338,26 @@ function draw() {
   }
 
   // draw collectable
-  let collectableScreenX = collectable.x_pos;
 
-  if (dist(gameChar_x, gameChar_y, collectable.x_pos, collectable.y_pos) < 20) {
-    collectable.isFound = true;
-  }
-  if (!collectable.isFound) {
-    apple(collectableScreenX, collectable.y_pos, collectable.size);
+  for (let i = 0; i < temp_collectable.length; i++) {
+    apple1(temp_collectable[i]);
+    checkCollectable(temp_collectable[i]);
+    // if (
+    //   dist(
+    //     gameChar_x,
+    //     gameChar_y,
+    //     temp_collectable[i].x_pos,
+    //     temp_collectable[i].y_pos,
+    //   ) < 20
+    // ) {
+    //   temp_collectable[i].isFound = true;
+    // }
   }
 
   // Draw the enemy
   drawEnemy();
   updateEnemy();
 
-  console.log(gameChar_x, gameChar_y, enemy.x_pos, enemy.y_pos);
   if (dist(gameChar_x, gameChar_y, enemy.x_pos, enemy.y_pos) < 40) {
     console.log('Dead');
     isPlayerDead = true;
@@ -233,9 +366,10 @@ function draw() {
   }
 
   // Draw the canyon
-  let canyonScreenX = canyon.x_pos;
-  fill(100, 50, 0);
-  rect(canyonScreenX, 432, canyon.width, 144);
+
+  for (let i = 0; i < canyon.length; i++) {
+    drawCanyon(canyon[i]);
+  }
 
   //the game character
   if (isLeft && isJumping) {
@@ -384,19 +518,16 @@ function draw() {
 
   // FALLING DOWN CANYON LOGIC
 
-  if (
-    gameChar_x > canyon.x_pos + 50 &&
-    gameChar_x < canyon.x_pos + canyon.width
-  ) {
-    isFallingDownCanyon = true;
-  } else {
-    isFallingDownCanyon = false;
+  for (let i = 0; i < canyon.length; i++) {
+    checkCanyon(canyon[i]);
   }
+  console.log(isFallingDownCanyon);
 
   ///////////INTERACTION CODE//////////
   //Put conditional statements to move the game character below here
 
-  if (isFallingDownCanyon && gameChar_y >= 432) {
+  if (isFallingDownCanyon) {
+    console.log('Game Character must fall');
     gameChar_y += 10; // Fall faster into the canyon
     if (gameChar_y >= height) {
       gameChar_y = height; // Stop falling once at the bottom
@@ -441,11 +572,11 @@ function draw() {
     if (isLeft && isJumping && gameChar_y > 400) {
       gameChar_y -= 60;
     } else if (!isJumping && gameChar_y < 432) {
-      gameChar_y += 15;
+      gameChar_y += 5;
     } else if (isRight && isJumping && gameChar_y > 400) {
       gameChar_y -= 60;
     } else if (!isJumping && gameChar_y < 432) {
-      gameChar_y += 15;
+      gameChar_y += 5;
     }
   }
 }
