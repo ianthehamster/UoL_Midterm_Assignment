@@ -42,6 +42,7 @@ var game_score;
 var flagpole;
 var lives;
 var playerLostLife;
+var isGameOver;
 
 function drawCanyon(t_canyon) {
   fill(100, 50, 0);
@@ -187,7 +188,7 @@ function renderFlagpole() {
 
   if (flagpole.isReached) {
     noStroke();
-    rect(flagpole.x_pos, floorPos_y - 250, 100, 50);
+    rect(flagpole.x_pos, floorPos_y - 250, 150, 50);
     fill(0);
     text('You made it!', flagpole.x_pos + 20, floorPos_y - 220);
   } else {
@@ -219,11 +220,40 @@ function checkPlayerDie() {
     playerLostLife = true;
     lives -= 1;
   }
-
+  
+ 
   if (lives > 0 && playerLostLife) {
     startGame();
+  } else if(lives <= 0) {
+    isGameOver = true
+    gameOver();
+  } else if(flagpole.isReached){
+    console.log("Flagpole reached!")
+    gameWon()
   }
 }
+
+function gameOver(){
+  
+  push()
+  fill(255);
+  textSize(100)
+  stroke(0)
+  strokeWeight(4)
+  text('Game Over', width/2, height/2);
+  pop()
+}
+
+function gameWon(){
+  push()
+  fill(255);
+  textSize(100)
+  stroke(0)
+  strokeWeight(4)
+  text('Level Completed!', width/10, height/2);
+  pop()
+}
+
 
 function startGame() {
   gameChar_x = width / 2;
@@ -235,6 +265,7 @@ function startGame() {
   isFallingDownCanyon = false;
   isJumping = false;
   isPlayerDead = false;
+  isGameOver = false;
 
   collectable = {
     x_pos: 339,
@@ -339,6 +370,7 @@ function setup() {
   createCanvas(1024, 576);
   floorPos_y = (height * 3) / 4;
   startGame();
+  
   // gameChar_x = width / 2;
   // gameChar_y = floorPos_y;
 
@@ -463,10 +495,17 @@ function draw() {
   fill(0, 155, 0);
   rect(0, floorPos_y, width, height - floorPos_y); //draw some green ground
 
+  textSize(20)
   fill(255);
   noStroke();
   text('score: ' + game_score, 30, 20);
-  text('lives: ' + lives, 30, 40);
+  text('lives: ' , 30, 40);
+  for(let i = 0; i< lives; i++){
+    fill(100, 255,10);
+    
+   
+    ellipse(90 + 15*i, 35, 10)
+  }
 
   push();
 
@@ -631,27 +670,52 @@ function draw() {
     line(gameChar_x + 13, gameChar_y - 35, gameChar_x + 30, gameChar_y - 30);
     strokeWeight(1);
   } else if (isJumping || isFallingDueToGravity) {
-    // add your jumping facing forwards code
-    fill(200, 150, 150);
+    if(!isGameOver){
+      // add your jumping facing forwards code
+      fill(200, 150, 150);
 
-    ellipse(gameChar_x, gameChar_y - 57, 35);
+      ellipse(gameChar_x, gameChar_y - 57, 35);
 
-    fill(100, 150, 0);
+      fill(100, 150, 0);
 
-    rect(gameChar_x - 13, gameChar_y - 42, 26, 30);
+      rect(gameChar_x - 13, gameChar_y - 42, 26, 30);
 
-    fill(0);
+      fill(0);
 
-    rect(gameChar_x - 15, gameChar_y - 13, 10, 15);
+      rect(gameChar_x - 15, gameChar_y - 13, 10, 15);
 
-    rect(gameChar_x + 5, gameChar_y - 13, 10, 15);
+      rect(gameChar_x + 5, gameChar_y - 13, 10, 15);
 
-    // Draw the arms
-    stroke(200, 150, 150);
-    strokeWeight(5);
-    line(gameChar_x - 13, gameChar_y - 35, gameChar_x - 30, gameChar_y - 40);
-    line(gameChar_x + 13, gameChar_y - 35, gameChar_x + 30, gameChar_y - 40);
-    strokeWeight(1);
+      // Draw the arms
+      stroke(200, 150, 150);
+      strokeWeight(5);
+      line(gameChar_x - 13, gameChar_y - 35, gameChar_x - 30, gameChar_y - 40);
+      line(gameChar_x + 13, gameChar_y - 35, gameChar_x + 30, gameChar_y - 40);
+      strokeWeight(1);
+    } else {
+      fill(200, 150, 150);
+
+      ellipse(gameChar_x, gameChar_y - 52, 35);
+  
+      // Draw the body
+      fill(100, 150, 0);
+  
+      rect(gameChar_x - 13, gameChar_y - 37, 26, 30);
+  
+      // Draw the legs
+      fill(0);
+  
+      rect(gameChar_x - 20, gameChar_y - 8, 15, 10);
+  
+      rect(gameChar_x + 5, gameChar_y - 8, 15, 10);
+  
+      // Draw the arms
+      stroke(200, 150, 150);
+      strokeWeight(5);
+      line(gameChar_x - 13, gameChar_y - 35, gameChar_x - 30, gameChar_y - 30);
+      line(gameChar_x + 13, gameChar_y - 35, gameChar_x + 30, gameChar_y - 30);
+    }
+ 
   } else {
     // add your standing front facing code
     // Draw the head
@@ -689,7 +753,7 @@ function draw() {
 
   ///////////INTERACTION CODE//////////
   //Put conditional statements to move the game character below here
-
+  console.log('isGameOver', isGameOver)
   if (isFallingDownCanyon) {
     gameChar_y += 10; // Fall faster into the canyon
     if (gameChar_y >= height) {
@@ -697,14 +761,24 @@ function draw() {
 
       ignoreSpacebar = false;
 
-      if (isJumping && gameChar_y == 576) {
-        gameChar_y -= 100;
-        isJumping = false;
-
-        if (gameChar_y >= 476) {
-          gameChar_y += 10;
+      if(!isGameOver){
+        if (isJumping && gameChar_y == 576) {
+          gameChar_y -= 100;
+          isJumping = false;
+  
+          if (gameChar_y >= 476) {
+            gameChar_y += 10;
+          }
         }
       }
+      // if (isJumping && gameChar_y == 576) {
+      //   gameChar_y -= 100;
+      //   isJumping = false;
+
+      //   if (gameChar_y >= 476) {
+      //     gameChar_y += 10;
+      //   }
+      // }
     }
   } else {
     if (isLeft) {
@@ -742,27 +816,26 @@ function draw() {
 }
 
 function keyPressed() {
-  if (keyCode == 37 && !isFallingDownCanyon) {
+  if (keyCode == 37 && !isFallingDownCanyon && !flagpole.isReached) {
     isLeft = true;
-  } else if (keyCode == 39 && !isFallingDownCanyon) {
+  } else if (keyCode == 39 && !isFallingDownCanyon && !flagpole.isReached) {
     isRight = true;
-  } else if (keyCode == 32) {
+  } else if (keyCode == 32 && !flagpole.isReached) {
     if (!ignoreSpacebar) {
       isJumping = true;
       setTimeout(() => {
         ignoreSpacebar = true;
       }, 300);
-    } else {
-    }
+    } 
   }
 
-  if ((keyCode == 32 && isLeft) || (keyCode == 32 && isRight)) {
+  if ((keyCode == 32 && isLeft ) || (keyCode == 32 && isRight)) {
     isJumping = true;
   }
 }
 
 function keyReleased() {
-  if (keyCode == 37) {
+  if (keyCode == 37 ) {
     isLeft = false;
   } else if (keyCode == 39) {
     isRight = false;
