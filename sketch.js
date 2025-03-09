@@ -5,7 +5,9 @@ Game Project 4 - Side Scrolling
 Mid Term Assignment
 
 */
-
+var gameOver = false;
+var gameWon = false;
+var restartButton;
 var gameChar_x;
 var gameChar_y;
 var floorPos_y;
@@ -29,37 +31,105 @@ var clouds_y;
 var mountains_x;
 var mountains_y;
 var mountains_height;
+var temp_collectable;
 
-var scrollPos;
+// var scrollPos;
 var gameChar_world_x;
 
-function apple(x_pos, y_pos, size) {
+var cameraPosX;
+
+var enemy;
+
+var game_score;
+var flagpole;
+var lives;
+var playerLostLife;
+let jumpSound;
+
+function preload() {
+  soundFormats('wav', 'mp3');
+  jumpSound = loadSound('assets/jump.mp3');
+  gameStart = loadSound('assets/gameStart.mp3');
+  enemyHit = loadSound('assets/retroHurt.mp3');
+  heroFalling = loadSound('assets/fallingDown.mp3');
+  levelWin = loadSound('assets/levelWin.mp3');
+  levelLost = loadSound('assets/levelLost.mp3');
+}
+
+function drawCanyon(t_canyon) {
+  fill(100, 50, 0);
+  rect(t_canyon.x_pos, 432, t_canyon.width, 144);
+}
+
+function apple1(t_collectable) {
+  if (
+    dist(gameChar_x, gameChar_y, t_collectable.x_pos, t_collectable.y_pos) < 20
+  ) {
+    collectable.isFound = true;
+  }
   // Main apple body
-  fill(255, 0, 0);
-  noStroke();
-  ellipse(x_pos, y_pos - 15, size, size);
+  if (!t_collectable.isFound) {
+    fill(255, 0, 0);
+    noStroke();
+    ellipse(
+      t_collectable.x_pos,
+      t_collectable.y_pos - 15,
+      t_collectable.size,
+      t_collectable.size,
+    );
 
-  fill(255, 0, 0);
-  arc(x_pos + 6, y_pos - 27, size - 20, size - 20, PI, TWO_PI);
-  arc(x_pos - 6, y_pos - 27, size - 20, size - 20, PI, TWO_PI);
+    fill(255, 0, 0);
+    arc(
+      t_collectable.x_pos + 6,
+      t_collectable.y_pos - 27,
+      t_collectable.size - 20,
+      t_collectable.size - 20,
+      PI,
+      TWO_PI,
+    );
+    arc(
+      t_collectable.x_pos - 6,
+      t_collectable.y_pos - 27,
+      t_collectable.size - 20,
+      t_collectable.size - 20,
+      PI,
+      TWO_PI,
+    );
 
-  stroke(101, 67, 33);
-  strokeWeight(2);
-  line(x_pos, y_pos - 40, x_pos, y_pos - 39);
+    stroke(101, 67, 33);
+    strokeWeight(2);
+    line(
+      t_collectable.x_pos,
+      t_collectable.y_pos - 40,
+      t_collectable.x_pos,
+      t_collectable.y_pos - 39,
+    );
 
-  fill(34, 139, 34);
-  noStroke();
-  ellipse(x_pos + 6, y_pos - 32, size - 15, size - 20);
+    fill(34, 139, 34);
+    noStroke();
+    ellipse(
+      t_collectable.x_pos + 6,
+      t_collectable.y_pos - 32,
+      t_collectable.size - 15,
+      t_collectable.size - 20,
+    );
+  }
 }
 
-function drawCloud(x_pos, y_pos, size) {
-  fill(255, 255, 255);
-  ellipse(x_pos + 200, y_pos + 150, 80, 80);
-  ellipse(x_pos + 160, y_pos + 150, 60, 60);
-  ellipse(x_pos + 240, y_pos + 150, 60, 60);
+function drawCloud() {
+  for (let i = 0; i < clouds_x.length; i++) {
+    fill(255, 255, 255);
+    ellipse(clouds_x[i] + 200, clouds_y[i] + 150, 80, 80);
+    ellipse(clouds_x[i] + 160, clouds_y[i] + 150, 60, 60);
+    ellipse(clouds_x[i] + 240, clouds_y[i] + 150, 60, 60);
+  }
+  // fill(255, 255, 255);
+  // ellipse(x_pos + 200, y_pos + 150, 80, 80);
+  // ellipse(x_pos + 160, y_pos + 150, 60, 60);
+  // ellipse(x_pos + 240, y_pos + 150, 60, 60);
 }
 
-function drawMountainUpdated(x_pos, y_pos, height) {
+function drawMountain(x_pos, y_pos, height) {
   fill(179, 189, 199);
   noStroke();
   triangle(x_pos, y_pos, x_pos + 100, height, x_pos + 200, y_pos);
@@ -74,9 +144,137 @@ function drawMountainUpdated(x_pos, y_pos, height) {
   );
 }
 
-function setup() {
-  createCanvas(1024, 576);
-  floorPos_y = (height * 3) / 4;
+function drawEnemy() {
+  fill(255, 102, 255);
+  ellipse(enemy.x_pos, enemy.y_pos, enemy.size, enemy.size);
+}
+
+function updateEnemy() {
+  enemy.x_pos += enemy.speed * enemy.direction;
+
+  if (enemy.x_pos > 600 + enemy.range || enemy.x_pos < 400 + enemy.range) {
+    enemy.direction *= -1;
+  }
+}
+
+function checkCollectable(temp_collectable) {
+  if (
+    dist(
+      gameChar_x,
+      gameChar_y,
+      temp_collectable.x_pos,
+      temp_collectable.y_pos,
+    ) < 20
+  ) {
+    temp_collectable.isFound = true;
+    console.log('You have found a collectable', temp_collectable);
+    game_score += 1;
+  }
+}
+
+function checkCanyon(canyon) {
+  if (
+    gameChar_x > canyon.x_pos + 20 &&
+    gameChar_x < canyon.x_pos + canyon.width &&
+    gameChar_y >= 432
+  ) {
+    isFallingDownCanyon = true;
+    console.log('Game Character should fall');
+    console.log(
+      canyon.x_pos + 20,
+      canyon.x_pos + canyon.width,
+      gameChar_x,
+      gameChar_y,
+      isFallingDownCanyon,
+    );
+  }
+}
+
+function renderFlagpole() {
+  // push and pop ensures stroke and fill do not affect other elements
+  push();
+  stroke(0);
+  strokeWeight(5);
+  line(flagpole.x_pos, floorPos_y, flagpole.x_pos, floorPos_y - 250);
+  fill(0, 255, 0);
+
+  if (flagpole.isReached) {
+    noStroke();
+    rect(flagpole.x_pos, floorPos_y - 250, 150, 50);
+    fill(0);
+    // text('You made it!', flagpole.x_pos + 20, floorPos_y - 220);
+    gameWon = true;
+    console.log('Game Won');
+  } else {
+    rect(flagpole.x_pos, floorPos_y - 50, 100, 50);
+  }
+  pop();
+}
+
+function checkFlagpole() {
+  // if (dist(gameChar_world_x, gameChar_y, flagpole.x_pos, floorPos_y) < 50) {
+  //   flagpole.isReached = true;
+  // }
+  var d = abs(gameChar_world_x - flagpole.x_pos);
+
+  if (d < 15) {
+    flagpole.isReached = true;
+  }
+  console.log('Distance to flagpole', d);
+}
+
+function checkPlayerDie() {
+  // if (gameChar_y >= height) {
+  //   lives -= 1;
+  //   if (lives >= 0) {
+  //     startGame();
+  //   }
+  // }
+  if (gameChar_y >= 576 && !playerLostLife) {
+    playerLostLife = true;
+    lives -= 1;
+  }
+  if (dist(gameChar_x, gameChar_y, enemy.x_pos, enemy.y_pos) < 40) {
+    console.log('enemy hit from checkPlayerDie');
+    isPlayerDead = true;
+
+    lives -= 1;
+    gameChar_x = width / 2;
+    gameChar_y = floorPos_y;
+    enemyHit.play();
+  }
+
+  if (lives > 0 && playerLostLife) {
+    startGame();
+  } else if (lives > 0) {
+    console.log('Game continues');
+  } else {
+    console.log('Game Over');
+    gameOver = true;
+  }
+}
+
+function gameOver() {
+  push();
+  fill(255);
+  textSize(100);
+  stroke(0);
+  strokeWeight(4);
+  text('Game Over', width / 2, height / 2);
+  pop();
+}
+
+function gameWon() {
+  push();
+  fill(255);
+  textSize(100);
+  stroke(0);
+  strokeWeight(4);
+  text('Level Completed!', width / 10, height / 2);
+  pop();
+}
+
+function startGame() {
   gameChar_x = width / 2;
   gameChar_y = floorPos_y;
 
@@ -85,6 +283,8 @@ function setup() {
   isFallingDueToGravity = false;
   isFallingDownCanyon = false;
   isJumping = false;
+  isPlayerDead = false;
+  isGameOver = false;
 
   collectable = {
     x_pos: 339,
@@ -93,29 +293,168 @@ function setup() {
     isFound: false,
   };
 
-  canyon = {
-    x_pos: 20,
-    width: 100,
-  };
+  temp_collectable = [
+    {
+      x_pos: 400,
+      y_pos: 432,
+      size: 30,
+      isFound: false,
+    },
+    {
+      x_pos: 600,
+      y_pos: 432,
+      size: 30,
+      isFound: false,
+    },
+    {
+      x_pos: -100,
+      y_pos: 432,
+      size: 30,
+      isFound: false,
+    },
+    {
+      x_pos: 800,
+      y_pos: 432,
+      size: 30,
+      isFound: false,
+    },
+    {
+      x_pos: 890,
+      y_pos: 432,
+      size: 30,
+      isFound: false,
+    },
+  ];
+
+  canyon = [
+    {
+      x_pos: 20,
+      width: 100,
+    },
+    {
+      x_pos: 1020,
+      width: 120,
+    },
+    {
+      x_pos: 1520,
+      width: 100,
+    },
+    {
+      x_pos: 2100,
+      width: 100,
+    },
+  ];
 
   ignoreSpacebar = false;
 
-  trees_x = [300, 500, 900, 1200, 1450];
+  trees_x = [
+    -1000, -800, -570, -380, -50, 300, 500, 900, 1200, 1450, 1780, 1990, 2200,
+    2700, 2900, 3200, 3600,
+  ];
   treePos_y = floorPos_y;
 
-  clouds_x = [-100, 300, 500, , 600, 900, 1100, 1300];
-  clouds_y = [-60, -80, -50, -70, -90, -70, -100];
+  clouds_x = [
+    -100, 300, 500, 600, 900, 1100, 1400, 1500, 1600, 1800, 1998, 2300,
+  ];
+  clouds_y = [-60, -80, -50, -70, -90, -70, -100, -90, -70, -100, -50, -80];
 
-  mountains_x = [300, 500];
+  mountains_x = [300, 500, 800, 900, 1200, 1300, 1400];
   mountains_y = 432;
-  mountains_height = [70, 80];
+  mountains_height = [70, 80, 70, 90, 70, 60, 95];
 
-  scrollPos = 0;
+  // scrollPos = 0;
   gameChar_world_x = gameChar_x;
+
+  cameraPosX = 0;
+
+  enemy = {
+    x_pos: 600,
+    y_pos: floorPos_y - 20,
+    size: 30,
+    speed: 2,
+    range: 200,
+    direction: 1,
+  };
+
+  game_score = 0;
+
+  flagpole = {
+    isReached: false,
+    x_pos: 2300,
+  };
+  playerLostLife = false;
+}
+
+function setup() {
+  createCanvas(1024, 576);
+  floorPos_y = (height * 3) / 4;
+  startGame();
+
+  lives = 3;
+  // playerLostLife = false;
+  // Create a restart button and hide it
+  button = createButton('Restart');
+  button.hide();
+  // Assign a function that runs when the user clicks this button
+  button.mousePressed(restartGame);
+}
+function restartGame() {
+  startGame();
+  lives = 3; // Or however many lives you want at restart
+  game_score = 0;
+  gameOver = false;
+  loop();
+  button.hide();
 }
 
 function draw() {
   ///////////DRAWING CODE//////////
+
+  if (gameWon) {
+    background(0);
+    fill(0, 255, 0);
+    textAlign(CENTER);
+    textSize(100);
+    text('You Won!', width / 2, height / 2);
+    textSize(32);
+    fill(0, 255, 0);
+    text('Score: ' + game_score, width / 2, height / 2 + 60);
+    levelWin.play();
+
+    noLoop();
+    return;
+  }
+
+  // If gameOver, just show a Game Over screen
+  if (gameOver) {
+    background(0);
+
+    fill(255, 0, 0);
+    textAlign(CENTER);
+    textSize(60);
+    text('GAME OVER', width / 2, height / 2);
+
+    // Show final score
+    textSize(32);
+    fill(255);
+    text('Score: ' + game_score, width / 2, height / 2 + 60);
+    levelLost.play();
+
+    // Show the restart button
+    button.show();
+    // Move it to a nice position on screen
+    button.position(width / 2 - 40, height / 2 + 120);
+
+    // Stop the draw loop so everything "freezes"
+    noLoop();
+    return; // Make sure to return so no other game code runs
+  } else {
+    // If the game is not over, hide the button so it doesn't interfere
+    button.hide();
+  }
+
+  cameraPosX = gameChar_x - 600;
+  gameChar_world_x = gameChar_x;
 
   background(100, 155, 255); //fill the sky blue
   if (!isFallingDownCanyon) gameChar_y = Math.min(432, gameChar_y);
@@ -123,24 +462,32 @@ function draw() {
   noStroke();
   fill(0, 155, 0);
   rect(0, floorPos_y, width, height - floorPos_y); //draw some green ground
-  // console.log(scrollPos);
 
-  for (let i = 0; i < clouds_x.length; i++) {
-    let cloudScreenX = clouds_x[i] + scrollPos;
+  textSize(20);
+  fill(255);
+  noStroke();
+  text('score: ' + game_score, 30, 20);
+  text('lives: ', 30, 40);
+  for (let i = 0; i < lives; i++) {
+    fill(100, 255, 10);
 
-    drawCloud(cloudScreenX, clouds_y[i]);
+    ellipse(90 + 15 * i, 35, 10);
   }
 
-  // drawMountainUpdated(500, 432, 70);
-  // drawMountainUpdated(300, 432, 80);
+  push();
+
+  translate(-cameraPosX, 0);
+
+  drawCloud();
 
   for (let i = 0; i < mountains_x.length; i++) {
-    let mountainScreenX = mountains_x[i] + scrollPos;
-    drawMountainUpdated(mountainScreenX, mountains_y, mountains_height[i]);
+    let mountainScreenX = mountains_x[i];
+    drawMountain(mountainScreenX, mountains_y, mountains_height[i]);
   }
 
   for (let i = 0; i < trees_x.length; i++) {
-    let treeScreenX = trees_x[i] + scrollPos; // Adjust position relative to scroll
+    let treeScreenX = trees_x[i];
+
     fill(100, 50, 0);
     rect(treeScreenX - 25, -150 + treePos_y, 50, 150);
     fill(0, 100, 0);
@@ -163,31 +510,35 @@ function draw() {
   }
 
   // draw collectable
-  let collectableScreenX = collectable.x_pos + scrollPos;
-  // console.log('//////////////////////////////////////');
-  // console.log(
-  //   gameChar_x,
-  //   gameChar_y,
-  //   scrollPos,
-  //   collectable.x_pos,
-  //   collectable.y_pos,
-  // );
-  // console.log('//////////////////////////////////////');
-  if (dist(gameChar_x, gameChar_y, collectable.x_pos, collectable.y_pos) < 20) {
-    collectable.isFound = true;
-  }
-  if (!collectable.isFound) {
-    // apple(collectable.x_pos - 36, collectable.y_pos, collectable.size);
-    apple(collectableScreenX, collectable.y_pos, collectable.size);
 
-    // apple(collectable.x_pos + 100, collectable.y_pos, collectable.size);
-    // apple(canyon.x_pos - 310, collectable.y_pos, collectable.size);
+  for (let i = 0; i < temp_collectable.length; i++) {
+    if (!temp_collectable[i].isFound) {
+      apple1(temp_collectable[i]);
+      checkCollectable(temp_collectable[i]);
+    }
   }
+
+  // Draw the enemy
+  drawEnemy();
+  updateEnemy();
+
+  // if (dist(gameChar_x, gameChar_y, enemy.x_pos, enemy.y_pos) < 40) {
+  //   console.log('Dead');
+  //   isPlayerDead = true;
+
+  //   lives -= 1;
+  //   gameChar_x = width / 2;
+  //   gameChar_y = floorPos_y;
+  //   enemyHit.play();
+  // }
 
   // Draw the canyon
-  let canyonScreenX = canyon.x_pos + scrollPos;
-  fill(100, 50, 0);
-  rect(canyonScreenX, 432, canyon.width, 144);
+
+  for (let i = 0; i < canyon.length; i++) {
+    drawCanyon(canyon[i]);
+  }
+
+  renderFlagpole();
 
   //the game character
   if (isLeft && isJumping) {
@@ -285,27 +636,51 @@ function draw() {
     line(gameChar_x + 13, gameChar_y - 35, gameChar_x + 30, gameChar_y - 30);
     strokeWeight(1);
   } else if (isJumping || isFallingDueToGravity) {
-    // add your jumping facing forwards code
-    fill(200, 150, 150);
+    if (!isGameOver) {
+      // add your jumping facing forwards code
+      fill(200, 150, 150);
 
-    ellipse(gameChar_x, gameChar_y - 57, 35);
+      ellipse(gameChar_x, gameChar_y - 57, 35);
 
-    fill(100, 150, 0);
+      fill(100, 150, 0);
 
-    rect(gameChar_x - 13, gameChar_y - 42, 26, 30);
+      rect(gameChar_x - 13, gameChar_y - 42, 26, 30);
 
-    fill(0);
+      fill(0);
 
-    rect(gameChar_x - 15, gameChar_y - 13, 10, 15);
+      rect(gameChar_x - 15, gameChar_y - 13, 10, 15);
 
-    rect(gameChar_x + 5, gameChar_y - 13, 10, 15);
+      rect(gameChar_x + 5, gameChar_y - 13, 10, 15);
 
-    // Draw the arms
-    stroke(200, 150, 150);
-    strokeWeight(5);
-    line(gameChar_x - 13, gameChar_y - 35, gameChar_x - 30, gameChar_y - 40);
-    line(gameChar_x + 13, gameChar_y - 35, gameChar_x + 30, gameChar_y - 40);
-    strokeWeight(1);
+      // Draw the arms
+      stroke(200, 150, 150);
+      strokeWeight(5);
+      line(gameChar_x - 13, gameChar_y - 35, gameChar_x - 30, gameChar_y - 40);
+      line(gameChar_x + 13, gameChar_y - 35, gameChar_x + 30, gameChar_y - 40);
+      strokeWeight(1);
+    } else {
+      fill(200, 150, 150);
+
+      ellipse(gameChar_x, gameChar_y - 52, 35);
+
+      // Draw the body
+      fill(100, 150, 0);
+
+      rect(gameChar_x - 13, gameChar_y - 37, 26, 30);
+
+      // Draw the legs
+      fill(0);
+
+      rect(gameChar_x - 20, gameChar_y - 8, 15, 10);
+
+      rect(gameChar_x + 5, gameChar_y - 8, 15, 10);
+
+      // Draw the arms
+      stroke(200, 150, 150);
+      strokeWeight(5);
+      line(gameChar_x - 13, gameChar_y - 35, gameChar_x - 30, gameChar_y - 30);
+      line(gameChar_x + 13, gameChar_y - 35, gameChar_x + 30, gameChar_y - 30);
+    }
   } else {
     // add your standing front facing code
     // Draw the head
@@ -332,71 +707,51 @@ function draw() {
     line(gameChar_x + 13, gameChar_y - 35, gameChar_x + 30, gameChar_y - 30);
   }
 
+  pop();
+
   // FALLING DOWN CANYON LOGIC
 
-  if (
-    gameChar_world_x > canyon.x_pos + 50 &&
-    gameChar_world_x < canyon.x_pos + canyon.width
-  ) {
-    isFallingDownCanyon = true;
-  } else {
-    isFallingDownCanyon = false;
+  for (let i = 0; i < canyon.length; i++) {
+    checkCanyon(canyon[i]);
   }
+  console.log(isFallingDownCanyon);
 
   ///////////INTERACTION CODE//////////
-  //Put conditional statements to move the game character below here
-  // if (gameChar_y < 582 && gameChar_y > 442) {
-  //   ignoreSpacebar = true;
-  // } else if (gameChar_y == 582) {
-  //   ignoreSpacebar = false;
-  // }
-  if (isFallingDownCanyon && gameChar_y >= 432) {
+
+  if (isFallingDownCanyon) {
     gameChar_y += 10; // Fall faster into the canyon
     if (gameChar_y >= height) {
+      heroFalling.play();
       gameChar_y = height; // Stop falling once at the bottom
 
       ignoreSpacebar = false;
 
-      if (isJumping && gameChar_y == 576) {
-        console.log(
-          'Jumping at bottom of canyon',
-          gameChar_y,
-          'isFallingDownCanyon',
-          isFallingDownCanyon,
-        );
-        gameChar_y -= 100;
-        isJumping = false;
+      if (!isGameOver) {
+        if (isJumping && gameChar_y == 576) {
+          gameChar_y -= 100;
+          isJumping = false;
 
-        if (gameChar_y >= 476) {
-          console.log(
-            'Jumping at bottom of canyon',
-            gameChar_y,
-            'isFallingDownCanyon',
-            isFallingDownCanyon,
-          );
-          gameChar_y += 10;
+          if (gameChar_y >= 476) {
+            gameChar_y += 10;
+          }
         }
       }
+      // if (isJumping && gameChar_y == 576) {
+      //   gameChar_y -= 100;
+      //   isJumping = false;
+
+      //   if (gameChar_y >= 476) {
+      //     gameChar_y += 10;
+      //   }
+      // }
     }
   } else {
     if (isLeft) {
-      // gameChar_x -= 5;
-      if (gameChar_x > width * 0.2) {
-        gameChar_x -= 5; // Move character left on the screen
-      } else {
-        scrollPos += 5; // Scroll the world to the right
-      }
-      gameChar_world_x -= 5; // Update world position
+      gameChar_x -= 5;
     } else if (isRight) {
-      // gameChar_x += 5;
-      if (gameChar_x < width * 0.8) {
-        gameChar_x += 5; // Move character right on the screen
-      } else {
-        scrollPos -= 5; // Scroll the world to the left
-      }
-      gameChar_world_x += 5; // Update world position
+      gameChar_x += 5;
     } else if (isJumping && gameChar_y > 400) {
-      gameChar_y -= 15;
+      gameChar_y -= 60;
     }
 
     if (ignoreSpacebar && gameChar_y <= 432) {
@@ -405,34 +760,38 @@ function draw() {
     }
 
     if (isLeft && isJumping && gameChar_y > 400) {
-      gameChar_y -= 20;
+      gameChar_y -= 60;
     } else if (!isJumping && gameChar_y < 432) {
-      gameChar_y += 15;
+      gameChar_y += 5;
     } else if (isRight && isJumping && gameChar_y > 400) {
-      gameChar_y -= 15;
+      gameChar_y -= 60;
     } else if (!isJumping && gameChar_y < 432) {
-      gameChar_y += 15;
+      gameChar_y += 5;
     }
   }
+  if (flagpole.isReached == false) {
+    checkFlagpole();
+  }
+
+  // if (gameChar_y >= 576 && !playerLostLife) {
+  //   playerLostLife = true;
+  //   lives -= 1;
+  // }
+  checkPlayerDie();
 }
 
 function keyPressed() {
-  // if statements to control the animation of the character when
-  // keys are pressed.
-
-  //open up the console to see how these work
-
-  if (keyCode == 37 && !isFallingDownCanyon) {
+  if (keyCode == 37 && !isFallingDownCanyon && !flagpole.isReached) {
     isLeft = true;
-  } else if (keyCode == 39 && !isFallingDownCanyon) {
+  } else if (keyCode == 39 && !isFallingDownCanyon && !flagpole.isReached) {
     isRight = true;
-  } else if (keyCode == 32) {
+  } else if (keyCode == 32 && !flagpole.isReached) {
     if (!ignoreSpacebar) {
       isJumping = true;
+      jumpSound.play();
       setTimeout(() => {
         ignoreSpacebar = true;
       }, 300);
-    } else {
     }
   }
 
@@ -442,9 +801,6 @@ function keyPressed() {
 }
 
 function keyReleased() {
-  // if statements to control the animation of the character when
-  // keys are released.
-
   if (keyCode == 37) {
     isLeft = false;
   } else if (keyCode == 39) {
