@@ -5,7 +5,9 @@ Game Project 4 - Side Scrolling
 Mid Term Assignment
 
 */
-
+var gameOver = false;
+var gameWon = false;
+var restartButton;
 var gameChar_x;
 var gameChar_y;
 var floorPos_y;
@@ -42,6 +44,17 @@ var game_score;
 var flagpole;
 var lives;
 var playerLostLife;
+let jumpSound;
+
+function preload() {
+  soundFormats('wav', 'mp3');
+  jumpSound = loadSound('assets/jump.mp3');
+  gameStart = loadSound('assets/gameStart.mp3');
+  enemyHit = loadSound('assets/retroHurt.mp3');
+  heroFalling = loadSound('assets/fallingDown.mp3');
+  levelWin = loadSound('assets/levelWin.mp3');
+  levelLost = loadSound('assets/levelLost.mp3');
+}
 
 function drawCanyon(t_canyon) {
   fill(100, 50, 0);
@@ -189,7 +202,9 @@ function renderFlagpole() {
     noStroke();
     rect(flagpole.x_pos, floorPos_y - 250, 100, 50);
     fill(0);
-    text('You made it!', flagpole.x_pos + 20, floorPos_y - 220);
+    // text('You made it!', flagpole.x_pos + 20, floorPos_y - 220);
+    gameWon = true;
+    console.log('Game Won');
   } else {
     rect(flagpole.x_pos, floorPos_y - 50, 100, 50);
   }
@@ -219,9 +234,23 @@ function checkPlayerDie() {
     playerLostLife = true;
     lives -= 1;
   }
+  if (dist(gameChar_x, gameChar_y, enemy.x_pos, enemy.y_pos) < 40) {
+    console.log('enemy hit from checkPlayerDie');
+    isPlayerDead = true;
+
+    lives -= 1;
+    gameChar_x = width / 2;
+    gameChar_y = floorPos_y;
+    enemyHit.play();
+  }
 
   if (lives > 0 && playerLostLife) {
     startGame();
+  } else if (lives > 0) {
+    console.log('Game continues');
+  } else {
+    console.log('Game Over');
+    gameOver = true;
   }
 }
 
@@ -339,119 +368,69 @@ function setup() {
   createCanvas(1024, 576);
   floorPos_y = (height * 3) / 4;
   startGame();
-  // gameChar_x = width / 2;
-  // gameChar_y = floorPos_y;
-
-  // isLeft = false;
-  // isRight = false;
-  // isFallingDueToGravity = false;
-  // isFallingDownCanyon = false;
-  // isJumping = false;
-  // isPlayerDead = false;
-
-  // collectable = {
-  //   x_pos: 339,
-  //   y_pos: 432,
-  //   size: 30,
-  //   isFound: false,
-  // };
-
-  // temp_collectable = [
-  //   {
-  //     x_pos: 400,
-  //     y_pos: 432,
-  //     size: 30,
-  //     isFound: false,
-  //   },
-  //   {
-  //     x_pos: 600,
-  //     y_pos: 432,
-  //     size: 30,
-  //     isFound: false,
-  //   },
-  //   {
-  //     x_pos: -100,
-  //     y_pos: 432,
-  //     size: 30,
-  //     isFound: false,
-  //   },
-  //   {
-  //     x_pos: 800,
-  //     y_pos: 432,
-  //     size: 30,
-  //     isFound: false,
-  //   },
-  //   {
-  //     x_pos: 890,
-  //     y_pos: 432,
-  //     size: 30,
-  //     isFound: false,
-  //   },
-  // ];
-
-  // canyon = [
-  //   {
-  //     x_pos: 20,
-  //     width: 100,
-  //   },
-  //   {
-  //     x_pos: 1020,
-  //     width: 120,
-  //   },
-  //   {
-  //     x_pos: 1520,
-  //     width: 100,
-  //   },
-  //   {
-  //     x_pos: 2100,
-  //     width: 100,
-  //   },
-  // ];
-
-  // ignoreSpacebar = false;
-
-  // trees_x = [
-  //   -1000, -800, -570, -380, -50, 300, 500, 900, 1200, 1450, 1780, 1990, 2200,
-  //   2700, 2900, 3200, 3600,
-  // ];
-  // treePos_y = floorPos_y;
-
-  // clouds_x = [
-  //   -100, 300, 500, 600, 900, 1100, 1400, 1500, 1600, 1800, 1998, 2300,
-  // ];
-  // clouds_y = [-60, -80, -50, -70, -90, -70, -100, -90, -70, -100, -50, -80];
-
-  // mountains_x = [300, 500, 800, 900, 1200, 1300, 1400];
-  // mountains_y = 432;
-  // mountains_height = [70, 80, 70, 90, 70, 60, 95];
-
-  // // scrollPos = 0;
-  // gameChar_world_x = gameChar_x;
-
-  // cameraPosX = 0;
-
-  // enemy = {
-  //   x_pos: 600,
-  //   y_pos: floorPos_y - 20,
-  //   size: 30,
-  //   speed: 2,
-  //   range: 200,
-  //   direction: 1,
-  // };
-
-  // game_score = 0;
-
-  // flagpole = {
-  //   isReached: false,
-  //   x_pos: 2300,
-  // };
 
   lives = 3;
   // playerLostLife = false;
+  // Create a restart button and hide it
+  button = createButton('Restart');
+  button.hide();
+  // Assign a function that runs when the user clicks this button
+  button.mousePressed(restartGame);
+}
+function restartGame() {
+  startGame();
+  lives = 3; // Or however many lives you want at restart
+  game_score = 0;
+  gameOver = false;
+  loop();
+  button.hide();
 }
 
 function draw() {
   ///////////DRAWING CODE//////////
+
+  if (gameWon) {
+    background(0);
+    fill(0, 255, 0);
+    textAlign(CENTER);
+    textSize(100);
+    text('You Won!', width / 2, height / 2);
+    textSize(32);
+    fill(0, 255, 0);
+    text('Score: ' + game_score, width / 2, height / 2 + 60);
+    levelWin.play();
+
+    noLoop();
+    return;
+  }
+
+  // If gameOver, just show a Game Over screen
+  if (gameOver) {
+    background(0);
+
+    fill(255, 0, 0);
+    textAlign(CENTER);
+    textSize(60);
+    text('GAME OVER', width / 2, height / 2);
+
+    // Show final score
+    textSize(32);
+    fill(255);
+    text('Score: ' + game_score, width / 2, height / 2 + 60);
+    levelLost.play();
+
+    // Show the restart button
+    button.show();
+    // Move it to a nice position on screen
+    button.position(width / 2 - 40, height / 2 + 120);
+
+    // Stop the draw loop so everything "freezes"
+    noLoop();
+    return; // Make sure to return so no other game code runs
+  } else {
+    // If the game is not over, hide the button so it doesn't interfere
+    button.hide();
+  }
 
   cameraPosX = gameChar_x - 600;
   gameChar_world_x = gameChar_x;
@@ -473,10 +452,6 @@ function draw() {
   translate(-cameraPosX, 0);
 
   drawCloud();
-  // for (let i = 0; i < clouds_x.length; i++) {
-  //   let cloudScreenX = clouds_x[i];
-  //   drawCloud(cloudScreenX, clouds_y[i]);
-  // }
 
   for (let i = 0; i < mountains_x.length; i++) {
     let mountainScreenX = mountains_x[i];
@@ -520,12 +495,15 @@ function draw() {
   drawEnemy();
   updateEnemy();
 
-  if (dist(gameChar_x, gameChar_y, enemy.x_pos, enemy.y_pos) < 40) {
-    console.log('Dead');
-    isPlayerDead = true;
-    gameChar_x = width / 2;
-    gameChar_y = floorPos_y;
-  }
+  // if (dist(gameChar_x, gameChar_y, enemy.x_pos, enemy.y_pos) < 40) {
+  //   console.log('Dead');
+  //   isPlayerDead = true;
+
+  //   lives -= 1;
+  //   gameChar_x = width / 2;
+  //   gameChar_y = floorPos_y;
+  //   enemyHit.play();
+  // }
 
   // Draw the canyon
 
@@ -688,11 +666,11 @@ function draw() {
   console.log(isFallingDownCanyon);
 
   ///////////INTERACTION CODE//////////
-  //Put conditional statements to move the game character below here
 
   if (isFallingDownCanyon) {
     gameChar_y += 10; // Fall faster into the canyon
     if (gameChar_y >= height) {
+      heroFalling.play();
       gameChar_y = height; // Stop falling once at the bottom
 
       ignoreSpacebar = false;
@@ -749,6 +727,7 @@ function keyPressed() {
   } else if (keyCode == 32) {
     if (!ignoreSpacebar) {
       isJumping = true;
+      jumpSound.play();
       setTimeout(() => {
         ignoreSpacebar = true;
       }, 300);
